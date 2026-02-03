@@ -20,6 +20,7 @@ import ReasonModal from '../components/common/ReasonModal';
 import { sendSlackNotification, getLogSummary } from '../utils/slackUtils';
 import { sendToGoogleSheet } from '../utils/googleSheets';
 import { checkAndSendNotificationsUtil, type NotificationResult } from '../utils/notificationUtils';
+import { compressImage } from '../utils/imageUtils';
 
 const AdminPage: React.FC = () => {
     const navigate = useNavigate();
@@ -68,6 +69,7 @@ const AdminPage: React.FC = () => {
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', confirmText: undefined as string | undefined, isDestructive: undefined as boolean | undefined, onConfirm: () => { } });
     const [successModal, setSuccessModal] = useState({ isOpen: false, message: '' });
     const [reasonModal, setReasonModal] = useState<{ isOpen: boolean, title: string, message: string, onSubmit: (reason: string) => void }>({ isOpen: false, title: '', message: '', onSubmit: () => { } });
+    const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
     // Removed old individual states for purposes, destinations, gasStations, etc. as they are now in systemSettings or handled by SettingsTab
     // But we need derived state for compatibility if used elsewhere? 
@@ -138,7 +140,9 @@ const AdminPage: React.FC = () => {
         setIsLogModalOpen(false);
         setManualModal(null);
         setEditingVehicle({});
+        setEditingVehicle({});
         setEditingLog(null);
+        setNewImageFile(null);
 
         if (activeTab === 'vehicles') fetchVehicles();
         if (activeTab === 'requests') fetchRequests();
@@ -703,6 +707,27 @@ const AdminPage: React.FC = () => {
                 userName: matchedUser?.displayName || editingLog.userName,
             };
 
+            // Image Upload Logic
+            if (newImageFile) {
+                try {
+                    const compressed = await compressImage(newImageFile, 1280, 1280, 0.7);
+                    const path = `logs/${finalLogData.vehicleId}/${finalLogData.type}/${Date.now()}_${compressed.name}`;
+                    const storageRef = ref(storage, path);
+                    await uploadBytes(storageRef, compressed);
+                    const downloadURL = await getDownloadURL(storageRef);
+                    finalLogData.imageUrl = downloadURL;
+                } catch (imgErr) {
+                    console.error("Image upload failed:", imgErr);
+                    alert("이미지 업로드 실패 (기존 이미지 유지)");
+                }
+            }
+
+            // Recalculate Passenger Detail from Name (String -> Array)
+            if (typeof finalLogData.passengerName === 'string') {
+                finalLogData.passengerDetail = finalLogData.passengerName.split(',').map((s: string) => s.trim()).filter(Boolean);
+                finalLogData.passengerCount = finalLogData.passengerDetail.length;
+            }
+
             const collectionName = finalLogData.type === 'driving' ? 'drivingLogs' : finalLogData.type === 'fueling' ? 'fuelingLogs' : 'maintenanceLogs';
             await updateDoc(doc(db, collectionName, finalLogData.id), finalLogData);
 
@@ -714,11 +739,6 @@ const AdminPage: React.FC = () => {
                     const vehicleRef = doc(db, 'vehicles', finalLogData.vehicleId);
                     const updateField = `consumables.${finalLogData.item}`;
                     const mileageToUpdate = finalLogData.maintenanceMileage ? Number(finalLogData.maintenanceMileage) : 0;
-
-                    // Only update if we have a valid mileage. If 0/undefined, maybe skip? 
-                    // But user might want to set it to 0? Assuming mileageToUpdate > 0 usually.
-                    // If it's 0 (and vehicle has mileage), we might want to fetch vehicle mileage? 
-                    // But here we rely on what's in the log.
 
                     if (mileageToUpdate > 0) {
                         try {
@@ -766,6 +786,8 @@ const AdminPage: React.FC = () => {
                     distance: finalLogData.totalDistance, // Map totalDistance to distance column
                     startTime: finalLogData.startTime && finalLogData.startTime.includes('T') ? new Date(finalLogData.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : finalLogData.startTime,
                     endTime: finalLogData.endTime && finalLogData.endTime.includes('T') ? new Date(finalLogData.endTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : finalLogData.endTime,
+                    passengerName: finalLogData.passengerName, // Correct Updated String
+                    passengerDetail: finalLogData.passengerName, // Send the String for Sheet (Sheet expects string or we can join if it was array, but passengerName is already the joined string)
                 };
 
                 await sendToGoogleSheet(sheetPayload, systemSettings.sheetConfig?.url);
@@ -777,6 +799,7 @@ const AdminPage: React.FC = () => {
             setSuccessModal({ isOpen: true, message: '저장되었습니다.' });
             setIsLogModalOpen(false);
             setEditingLog(null);
+            setNewImageFile(null);
             fetchAllLogs();
             fetchRequests(); // Refresh requests to show status change
         } catch (e) {
@@ -935,7 +958,7 @@ const AdminPage: React.FC = () => {
                                                 </span>
                                             </div>
                                             <div className="flex space-x-1">
-                                                <button onClick={() => { setEditingLog({ ...log }); setIsLogModalOpen(true); }} className="p-1 px-2 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200">수정</button>
+                                                <button onClick={() => { setEditingLog({ ...log }); setNewImageFile(null); setIsLogModalOpen(true); }} className="p-1 px-2 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200">수정</button>
                                                 <button
                                                     onClick={() => handleDeleteLog(log)}
                                                     disabled={processingLogId === log.id}
@@ -1372,6 +1395,11 @@ const AdminPage: React.FC = () => {
                                             <div><label className="block text-sm text-gray-500">단가(원/L)</label><input type="number" className="w-full p-2 border rounded" value={editingLog.price || 0} onChange={e => setEditingLog({ ...editingLog, price: Number(e.target.value) })} /></div>
                                             <div><label className="block text-sm text-gray-500">결제수단</label><input className="w-full p-2 border rounded" value={editingLog.fundingSource || ''} onChange={e => setEditingLog({ ...editingLog, fundingSource: e.target.value })} /></div>
                                         </div>
+                                        <div>
+                                            <label className="block text-sm text-gray-500">영수증/이미지 변경</label>
+                                            <input type="file" accept="image/*" className="w-full p-2 border rounded" onChange={e => setNewImageFile(e.target.files?.[0] || null)} />
+                                            {editingLog.imageUrl && !newImageFile && <p className="text-xs text-green-600 mt-1">현재 이미지 등록됨 (변경하려면 파일 선택)</p>}
+                                        </div>
                                     </>
                                 )}
 
@@ -1384,6 +1412,11 @@ const AdminPage: React.FC = () => {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div><label className="block text-sm text-gray-500">종료일</label><input type="date" className="w-full p-2 border rounded" value={editingLog.endDate || ''} onChange={e => setEditingLog({ ...editingLog, endDate: e.target.value })} /></div>
                                             <div><label className="block text-sm text-gray-500">결제수단</label><input className="w-full p-2 border rounded" value={editingLog.fundingSource || ''} onChange={e => setEditingLog({ ...editingLog, fundingSource: e.target.value })} /></div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-gray-500">영수증/이미지 변경</label>
+                                            <input type="file" accept="image/*" className="w-full p-2 border rounded" onChange={e => setNewImageFile(e.target.files?.[0] || null)} />
+                                            {editingLog.imageUrl && !newImageFile && <p className="text-xs text-green-600 mt-1">현재 이미지 등록됨 (변경하려면 파일 선택)</p>}
                                         </div>
                                     </>
                                 )}
