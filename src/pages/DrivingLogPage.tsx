@@ -12,7 +12,9 @@ import AlertModal from '../components/common/AlertModal';
 import SuccessModal from '../components/common/SuccessModal';
 import ReasonModal from '../components/common/ReasonModal';
 import MyRequestsModal from '../components/common/MyRequestsModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { getTodayString, combineDateAndTime } from '../utils/dateUtils';
+import { formatNumberWithComma } from '../utils/formatUtils';
 
 const InfoItem = ({ label, value }: { label: string, value?: string | number }) => (
     <div className="flex justify-between border-b border-gray-100 pb-1 last:border-0 last:pb-0">
@@ -60,6 +62,9 @@ const DrivingLogPage: React.FC = () => {
     const [stopovers, setStopovers] = useState<{ location: string; time: Date }[]>([]);
     const [stopoverInput, setStopoverInput] = useState('');
     const [isBusinessTrip, setIsBusinessTrip] = useState(false);
+
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+
 
     // Fueling State
     const [station, setStation] = useState('');
@@ -385,15 +390,25 @@ const DrivingLogPage: React.FC = () => {
             return;
         }
 
-        setSubmitting(true); // Temporarily set to prevent double clicks while checking
+        // --- GAP WARNING LOGIC ---
+        const calculatedDistance = endMileage - startMileage;
+        if (calculatedDistance > 100) {
+            setConfirmModal({
+                isOpen: true,
+                title: '주행거리 과다 경고',
+                message: `[${vehicle.name} (${vehicle.plateNumber})] 차량이 맞나요?\n\n입력하신 주행거리가 ${formatNumberWithComma(calculatedDistance)}km입니다.\n(출발: ${formatNumberWithComma(startMileage)}km → 도착: ${formatNumberWithComma(endMileage)}km)\n\n혹시 차량을 잘못 선택하셨거나, 도착 누적거리를 잘못 입력하지 않으셨나요?\n실제 주행하신 것이 맞다면 [확인]을 눌러주세요.`,
+                onConfirm: async () => {
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                    await executeDrivingSubmit(fullStartTime, fullEndTime);
+                }
+            });
+            return;
+        }
 
-        // 1. Get existing logs for this vehicle on this date
-        // -------------------------------
-        // Validation: Date Overlap Check (Only for Driving Logs)
-        // -------------------------------
-        // Validation: Date Overlap Check (Future Implementation)
-        // if (activeTab === 'log' && startTime && endTime) { ... }
+        await executeDrivingSubmit(fullStartTime, fullEndTime);
+    };
 
+    const executeDrivingSubmit = async (fullStartTime: Date | null, fullEndTime: Date | null) => {
         setSubmitting(true);
         try {
             const commonData = {
@@ -967,6 +982,7 @@ const DrivingLogPage: React.FC = () => {
                                         />
                                         <span className="absolute right-3 top-3 text-sm text-gray-400">km</span>
                                     </div>
+                                    <div className="text-xs text-gray-400 text-right mt-1">{formatNumberWithComma(startMileage)} km</div>
                                 </div>
 
                                 <div>
@@ -983,6 +999,9 @@ const DrivingLogPage: React.FC = () => {
                                             className={`w-full p-3 border rounded-xl font-mono text-lg font-bold ${endMileage > 0 && endMileage <= startMileage ? 'border-red-500 text-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-2 focus:ring-slate-800'}`}
                                         />
                                         <span className="absolute right-3 top-3 text-sm text-gray-400">km</span>
+                                    </div>
+                                    <div className="text-xs text-blue-600 font-bold text-right mt-1">
+                                        {formatNumberWithComma(endMileage)} km
                                     </div>
                                     {endMileage > 0 && endMileage <= startMileage && (
                                         <p className="text-xs text-red-500 mt-1">출발 거리보다 커야 합니다.</p>
@@ -1819,6 +1838,16 @@ const DrivingLogPage: React.FC = () => {
             )}
 
             {/* Alert Modal */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                confirmText="네, 맞습니다"
+                cancelText="다시 입력"
+                isDestructive={false}
+            />
             <AlertModal
                 isOpen={alertModal.isOpen}
                 title={alertModal.title}

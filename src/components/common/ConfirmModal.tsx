@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmModalProps {
@@ -8,16 +9,17 @@ interface ConfirmModalProps {
     onConfirm: () => void;
     onClose: () => void;
     confirmText?: string;
+    cancelText?: string;
     isDestructive?: boolean;
     showCancel?: boolean;
 }
 
-import ReactDOM from 'react-dom';
 
-const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, title, message, onConfirm, onClose, confirmText = '삭제', isDestructive = true, showCancel = true }) => {
+
+const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, title, message, onConfirm, onClose, confirmText = '삭제', cancelText = '취소', isDestructive = true, showCancel = true }) => {
     if (!isOpen) return null;
 
-    return ReactDOM.createPortal(
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity animate-in fade-in duration-200" style={{ pointerEvents: 'auto' }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform transition-all animate-in zoom-in-95 duration-200 p-6 flex flex-col items-center text-center">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDestructive ? 'bg-red-100' : 'bg-blue-100'}`}>
@@ -33,7 +35,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, title, message, onC
                             onClick={onClose}
                             className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold text-lg transition-colors"
                         >
-                            취소
+                            {cancelText}
                         </button>
                     )}
                     <button
