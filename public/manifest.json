@@ -1,0 +1,22 @@
+{
+    "name": "동행빌리지 차량관리",
+    "short_name": "차량관리",
+    "description": "동행빌리지 차량 및 운행일지 관리 시스템",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "orientation": "any",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/icon-v5.jpg",
+            "sizes": "192x192",
+            "type": "image/jpeg"
+        },
+        {
+            "src": "/icon-v5.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}
