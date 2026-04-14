@@ -1394,7 +1394,10 @@ const AdminPage: React.FC = () => {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold">로그 수정 ({editingLog.type})</h3>
+                                <div>
+                                    <h3 className="text-xl font-bold">로그 수정 ({editingLog.type})</h3>
+                                    <p className="text-sm text-gray-500 mt-1">🚗 {vehicles.find(v => v.id === editingLog.vehicleId)?.name || editingLog.vehicleId} <span className="text-gray-400">({vehicles.find(v => v.id === editingLog.vehicleId)?.plateNumber || ''})</span></p>
+                                </div>
                                 <button onClick={() => { setIsLogModalOpen(false); setEditingLog(null); }}><X /></button>
                             </div>
                             <div className="space-y-4">
