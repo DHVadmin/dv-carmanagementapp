@@ -30,3 +30,9 @@ firebase-debug.log
 # Backups and History
 backup_*
 project_history/
+
+# Build temp files
+build.mjs
+build.txt
+build_output.txt
+dist2/
