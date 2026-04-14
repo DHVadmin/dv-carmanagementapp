@@ -97,7 +97,7 @@ const VehicleListPage: React.FC = () => {
             <header className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 py-4">
                     <div className="flex justify-between items-center mb-3">
-                        <h1 className="text-lg font-bold text-gray-800">동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.3</span></h1>
+                        <h1 className="text-lg font-bold text-gray-800">동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.6.3</span></h1>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setIsGuideOpen(true)}

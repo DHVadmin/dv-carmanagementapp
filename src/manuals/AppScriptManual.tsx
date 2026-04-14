@@ -16,7 +16,7 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         <div className="p-8 space-y-6 text-sm text-gray-800 leading-relaxed font-sans">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
             <p className="font-bold text-blue-700">📌 관리자용 매뉴얼 (PC 환경 권장)</p>
-            <p className="text-gray-600">구글 시트 연동을 위한 Apps Script 설정 방법입니다. <span className="font-bold text-blue-600">(v5.5.3)</span></p>
+            <p className="text-gray-600">구글 시트 연동을 위한 Apps Script 설정 방법입니다. <span className="font-bold text-blue-600">(v5.6.3)</span></p>
           </div>
 
           <section>
@@ -40,19 +40,29 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
               <pre>{`function doPost(e) {
     try {
         const data = JSON.parse(e.postData.contents);
+
+        // === Action Router ===
+        // 1. Slack 사용자 동기화
+        if (data.action === 'getSlackUsers') {
+            return handleGetSlackUsers(data);
+        }
+        // 2. 알림 수동 체크 (테스트)
+        if (data.action === 'runNotificationCheck') {
+            return handleNotificationCheck(data);
+        }
+
         const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DB');
         if (!sheet) {
             return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'DB sheet not found' })).setMimeType(ContentService.MimeType.JSON);
         }
 
-        // 1. Action: Delete
+        // 3. Action: Delete
         if (data.action === 'delete') {
             if (!data.id) return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'No ID provided for deletion' })).setMimeType(ContentService.MimeType.JSON);
             
             const lastRow = sheet.getLastRow();
             if (lastRow < 2) return ContentService.createTextOutput(JSON.stringify({ result: 'success', message: 'Sheet empty' })).setMimeType(ContentService.MimeType.JSON);
             
-            // Read all Item IDs (Column 24 / Index 23)
             const idRange = sheet.getRange(2, 24, lastRow - 1, 1);
             const idValues = idRange.getValues();
             
@@ -68,10 +78,7 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
             return ContentService.createTextOutput(JSON.stringify({ result: 'success', message: found ? 'Deleted' : 'Not found' })).setMimeType(ContentService.MimeType.JSON);
         }
 
-        // 2. Action: Write / Update (UPSERT Logic)
-        // 'write' action will UPDATE if ID exists, APPEND if it matches no ID.
-        
-        // --- Prepare Data Row ---
+        // 4. Action: Write / Update (UPSERT Logic)
         let note = data.remarks || '';
         if (!note) {
             if (data.passengerName) note += \`동승: \${data.passengerName} \`;
@@ -84,33 +91,32 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         }
 
         const row = [
-            data.startDate || data.date,                   // 1. 시작일
-            data.endDate || data.startDate || data.date,   // 2. 종료일
-            getKoreanType(data.type),                      // 3. 구분
-            \`\${data.vehicleName} (\${data.vehiclePlate})\`,  // 4. 차량
-            data.userName,                                 // 5. 사용자명
-            data.userId || '',                             // 6. 아이디
-            data.purpose || '',                            // 7. 목적
-            data.startTime || '',                          // 8. 출발시간
-            data.endTime || '',                            // 9. 도착시간
-            data.startMileage || '',                       // 10. 출발누적거리
-            data.endMileage || '',                         // 11. 도착누적거리
-            data.distance || '',                           // 12. 주행거리(km)
-            data.amount || '',                             // 13. 주유량(L)
-            data.pricePerLiter || '',                      // 14. 주유단가
-            data.destination || data.station || data.shop || '', // 15. 장소
-            data.item || '',                               // 16. 정비항목
-            data.cost || '',                               // 17. 금액
-            data.paymentMethod || '',                      // 18. 결제수단
-            data.passengerDetail || '',                    // 19. 동승자
-            data.stopoverDetail || '',                     // 20. 경유지
-            (data.type === 'fueling' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',      // 21. 주유이미지
-            (data.type === 'maintenance' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',  // 22. 정비이미지
-            new Date().toLocaleString(),                   // 23. 등록일시
-            data.id || ''                                  // 24. Log ID
+            data.startDate || data.date,
+            data.endDate || data.startDate || data.date,
+            getKoreanType(data.type),
+            \`\${data.vehicleName} (\${data.vehiclePlate})\`,
+            data.userName,
+            data.userId || '',
+            data.purpose || '',
+            data.startTime || '',
+            data.endTime || '',
+            data.startMileage || '',
+            data.endMileage || '',
+            data.distance || '',
+            data.amount || '',
+            data.pricePerLiter || '',
+            data.destination || data.station || data.shop || '',
+            data.item || '',
+            data.cost || '',
+            data.paymentMethod || '',
+            data.passengerDetail || '',
+            data.stopoverDetail || '',
+            (data.type === 'fueling' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',
+            (data.type === 'maintenance' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',
+            new Date().toLocaleString(),
+            data.id || ''
         ];
 
-        // --- Find & Upsert ---
         const lastRow = sheet.getLastRow();
         let foundIndex = -1;
 
@@ -126,11 +132,9 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         }
 
         if (foundIndex !== -1) {
-            // Update existing row
             sheet.getRange(foundIndex, 1, 1, row.length).setValues([row]);
             return ContentService.createTextOutput(JSON.stringify({ result: 'success', message: 'Updated row ' + foundIndex })).setMimeType(ContentService.MimeType.JSON);
         } else {
-            // Append new row
             sheet.appendRow(row);
             return ContentService.createTextOutput(JSON.stringify({ result: 'success', message: 'Appended new row' })).setMimeType(ContentService.MimeType.JSON);
         }
@@ -141,41 +145,74 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
     }
 }
 
-                function getKoreanType(type) {
-    switch (type) {
-        case 'driving': return '운행';
-                case 'fueling': return '주유';
-                case 'maintenance': return '정비';
-                default: return type;
+// === Slack 사용자 목록 가져오기 ===
+function handleGetSlackUsers(data) {
+    try {
+        if (!data.token) {
+            return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'Slack Bot Token is required' })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var response = UrlFetchApp.fetch('https://slack.com/api/users.list', {
+            method: 'get',
+            headers: { 'Authorization': 'Bearer ' + data.token }
+        });
+        var json = JSON.parse(response.getContentText());
+        if (!json.ok) {
+            return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'Slack API Error: ' + json.error })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var users = json.members
+            .filter(function(m) { return !m.deleted && !m.is_bot && m.profile && m.profile.email; })
+            .map(function(m) { return { id: m.id, email: m.profile.email, name: m.name, real_name: m.real_name, display_name: m.profile.display_name }; });
+        return ContentService.createTextOutput(JSON.stringify({ result: 'success', users: users })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
     }
 }
 
-                function saveImageToDrive(imageUrl) {
+// === 알림 수동 체크 (테스트용) ===
+function handleNotificationCheck(data) {
+    try {
+        // 이 함수는 GAS 스케줄러가 처리하는 알림 로직의 수동 트리거입니다.
+        // 기존 checkAndSendNotifications 함수가 있다면 호출합니다.
+        if (typeof checkAndSendNotifications === 'function') {
+            var result = checkAndSendNotifications(data.test === true);
+            return ContentService.createTextOutput(JSON.stringify({
+                result: 'success',
+                message: 'Check completed',
+                alertCount: result ? result.length : 0
+            })).setMimeType(ContentService.MimeType.JSON);
+        }
+        return ContentService.createTextOutput(JSON.stringify({
+            result: 'success',
+            message: '알림 체크 함수가 아직 설정되지 않았습니다. 스케줄러 설정을 확인해주세요.',
+            alertCount: 0
+        })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    }
+}
+
+function getKoreanType(type) {
+    switch (type) {
+        case 'driving': return '운행';
+        case 'fueling': return '주유';
+        case 'maintenance': return '정비';
+        default: return type;
+    }
+}
+
+function saveImageToDrive(imageUrl) {
   try {
-    // 지정하신 공유 폴더 ID
     const FOLDER_ID = "1t3Cad0Z_1hFDz70o6dJS2G-Rp0VYKfXf";
-
-                // 1. Get Folder by ID
-                const folder = DriveApp.getFolderById(FOLDER_ID);
-
-                // 2. Fetch Image Blob
-                const response = UrlFetchApp.fetch(imageUrl);
-                const blob = response.getBlob();
-
-                // 3. Create File in Drive (이름 중복 방지 타임스탬프)
-                blob.setName(new Date().toISOString().replace(/[:.]/g, '-') + "_image.jpg");
-                const file = folder.createFile(blob);
-
-                // 4. Set Permission (링크가 있는 모든 사용자 보기 권한)
-                file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-
-                // 5. Return Direct Link
-                return "https://drive.google.com/uc?export=view&id=" + file.getId();
-    
+    const folder = DriveApp.getFolderById(FOLDER_ID);
+    const response = UrlFetchApp.fetch(imageUrl);
+    const blob = response.getBlob();
+    blob.setName(new Date().toISOString().replace(/[:.]/g, '-') + "_image.jpg");
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return "https://drive.google.com/uc?export=view&id=" + file.getId();
   } catch(e) {
-                  console.error("SaveImageToDrive Error: " + e.toString());
-                // CRITICAL: Return error message to display in sheet
-                return "Error: " + e.toString(); 
+    console.error("SaveImageToDrive Error: " + e.toString());
+    return "Error: " + e.toString(); 
   }
 }`}</pre>
             </div>

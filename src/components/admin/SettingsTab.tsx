@@ -30,27 +30,31 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate, on
     const [slackBotToken, setSlackBotToken] = useState(settings.slackBotToken || '');
 
     const syncSlackUsers = async (token: string) => {
-        // Updated to use fetch calling onRequest function manually to bypass onCall CORS issues
-        const response = await fetch('https://us-central1-dv-carmanagementapp.cloudfunctions.net/getSlackUsers', {
+        // GAS Web App URL (same endpoint as Google Sheets sync)
+        const gasUrl = settings.sheetConfig?.url;
+        if (!gasUrl) {
+            throw new Error('구글 시트(Apps Script) URL이 설정되지 않았습니다. 먼저 구글 시트 URL을 설정해주세요.');
+        }
+
+        const response = await fetch(gasUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ token }) // getSlackUsers onRequest handler expects { token: ... } or { data: { token: ... } }
+            body: JSON.stringify({ action: 'getSlackUsers', token })
         });
 
         const result = await response.json();
 
-        // Check for success based on the new onRequest response format
-        // The handler returns: { result: { success: true, users: [...] } } or { error: ... }
-        if (response.ok && result.result && result.result.success) {
+        // GAS returns: { result: 'success', users: [...] } or { result: 'error', message: '...' }
+        if (response.ok && result.result === 'success' && result.users) {
             await updateSettings({
                 slackBotToken: token,
-                slackUsers: result.result.users
+                slackUsers: result.users
             });
         } else {
             console.error("Sync Error Details:", result);
-            throw new Error(result.error || result.data?.error || 'Unknown error');
+            throw new Error(result.message || result.error || 'Unknown error');
         }
     };
 
