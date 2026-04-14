@@ -201,7 +201,7 @@ const VehicleListPage: React.FC = () => {
                                         </div>
                                     )}
                                     <p className="text-sm font-bold text-gray-700">
-                                        {vehicle.lastMileage.toLocaleString()} km
+                                        {(vehicle.lastMileage || 0).toLocaleString()} km
                                     </p>
                                 </div>
                             </div>
