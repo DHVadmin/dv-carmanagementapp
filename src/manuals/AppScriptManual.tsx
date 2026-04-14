@@ -16,7 +16,7 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         <div className="p-8 space-y-6 text-sm text-gray-800 leading-relaxed font-sans">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
             <p className="font-bold text-blue-700">📌 관리자용 매뉴얼 (PC 환경 권장)</p>
-            <p className="text-gray-600">구글 시트 연동을 위한 Apps Script 설정 방법입니다. <span className="font-bold text-blue-600">(v5.5.2)</span></p>
+            <p className="text-gray-600">구글 시트 연동을 위한 Apps Script 설정 방법입니다. <span className="font-bold text-blue-600">(v5.5.3)</span></p>
           </div>
 
           <section>

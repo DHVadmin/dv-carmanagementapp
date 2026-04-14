@@ -98,12 +98,30 @@ export const sendModificationNotification = async (settings: SystemSettings, req
         }
 
         // 2. Replace Variables
+        const originalLog = request.originalData || {};
+        const vehicleName = originalLog.vehicleName || '차량명 미상';
+        const vehiclePlate = originalLog.vehiclePlate || originalLog.vehicleNumber || originalLog.plateNumber || '번호 미상';
+        const logDate = originalLog.date || originalLog.startDate || '날짜 미상';
+        const logPurpose = originalLog.purpose || originalLog.item || '';
+        const logDestination = originalLog.destination || '';
+        const logItem = originalLog.item || '';
+        const logDistance = originalLog.distance ? `${originalLog.distance}km` : '';
+
         message = template
             .replace(/{요청자}/g, requesterName)
             .replace(/{멘션}/g, mention)
             .replace(/{요청종류}/g, requestType)
             .replace(/{사유}/g, reason)
-            .replace(/{대상기록}/g, logSummary);
+            .replace(/{대상기록}/g, logSummary)
+            .replace(/{차량명}/g, vehicleName)
+            .replace(/{차량번호}/g, vehiclePlate)
+            .replace(/{날짜}/g, logDate)
+            .replace(/{목적}/g, logPurpose)
+            .replace(/{목적지}/g, logDestination)
+            .replace(/{항목}/g, logItem)
+            .replace(/{상태}/g, requestType)
+            .replace(/{잔여}/g, logDistance)
+            .replace(/{만료일}/g, logDate);
 
     } else {
         // Legacy Default Format (Fallback)

@@ -949,6 +949,15 @@ const IntegratedNotificationConfigForm = ({ settings, slackBotToken, onSave, onS
         text = text.replace(/{요청종류}/g, '수정');
         text = text.replace(/{사유}/g, '오타 수정 요청');
         text = text.replace(/{대상기록}/g, '[운행일지] 2024-02-06 / 12가3456\n출퇴근 / 15km');
+        text = text.replace(/{차량명}/g, '그랜저 IG');
+        text = text.replace(/{차량번호}/g, '12가3456');
+        text = text.replace(/{날짜}/g, '2024-02-06');
+        text = text.replace(/{목적}/g, '출퇴근');
+        text = text.replace(/{목적지}/g, '서울시청');
+        text = text.replace(/{항목}/g, '엔진오일');
+        text = text.replace(/{상태}/g, '교체 필요');
+        text = text.replace(/{잔여}/g, '500km');
+        text = text.replace(/{만료일}/g, '2024-12-31');
         return text;
     };
 
@@ -1017,7 +1026,7 @@ const IntegratedNotificationConfigForm = ({ settings, slackBotToken, onSave, onS
                         <label className="block text-xs font-bold text-gray-500">1. 기록 수정/삭제 요청 알림 템플릿</label>
                         <div className="text-[10px] text-gray-500 flex flex-wrap gap-1">
                             <span>변수:</span>
-                            {['{요청자}', '{멘션}', '{요청종류}', '{사유}', '{대상기록}'].map(tag => (
+                            {['{요청자}', '{멘션}', '{요청종류}', '{사유}', '{대상기록}', '{차량명}', '{차량번호}', '{날짜}', '{목적}', '{목적지}', '{항목}', '{상태}', '{잔여}', '{만료일}'].map(tag => (
                                 <span key={tag} className="px-1 bg-gray-200 rounded cursor-pointer hover:bg-gray-300"
                                     onClick={() => setLocal({ ...local, messageTemplate: (local.messageTemplate || '') + tag })}>
                                     {tag}
