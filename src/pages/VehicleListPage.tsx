@@ -45,23 +45,23 @@ const VehicleListPage: React.FC = () => {
         try {
             const mockVehicles: Omit<Vehicle, 'id'>[] = [
                 {
-                    name: '그랜저 IG',
+                    name: '그랜?� IG',
                     plateNumber: '12가 3456',
                     lastMileage: 54000,
                     fuelType: 'Gasoline',
                     insurance: {
-                        company: '삼성화재',
+                        company: '?�성?�재',
                         contact: '1588-5114',
                         expiryDate: '2025-12-31'
                     }
                 },
                 {
-                    name: '카니발',
-                    plateNumber: '34나 5678',
+                    name: '카니�?,
+                    plateNumber: '34??5678',
                     lastMileage: 12050,
                     fuelType: 'Diesel',
                     insurance: {
-                        company: 'DB손해보험',
+                        company: 'DB?�해보험',
                         contact: '1588-0100',
                         expiryDate: '2025-06-30'
                     }
@@ -72,10 +72,10 @@ const VehicleListPage: React.FC = () => {
                 await addDoc(collection(db, 'vehicles'), v);
             }
             await fetchVehicles();
-            alert('테스트 데이터가 생성되었습니다!');
+            alert('?�스???�이?��? ?�성?�었?�니??');
         } catch (e) {
             console.error('Error seeding data:', e);
-            alert('데이터 생성 실패 (권한 문제일 수 있습니다): ' + e);
+            alert('?�이???�성 ?�패 (권한 문제?????�습?�다): ' + e);
         } finally {
             setSeeding(false);
         }
@@ -83,10 +83,10 @@ const VehicleListPage: React.FC = () => {
 
     // Determine Role Display
     const getRoleDisplayName = () => {
-        if (!userRole) return '사용자';
+        if (!userRole) return '?�용??;
         if (userRole === 'admin') return '관리자';
         if (userRole === 'approver') return '결재권자';
-        return '사용자';
+        return '?�용??;
     };
 
     if (loading) return <div className="p-8 text-center">Loading...</div>;
@@ -97,14 +97,14 @@ const VehicleListPage: React.FC = () => {
             <header className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 py-4">
                     <div className="flex justify-between items-center mb-3">
-                        <h1 className="text-lg font-bold text-gray-800">동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.2</span></h1>
+                        <h1 className="text-lg font-bold text-gray-800">?�행빌리지 차량관�?<span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.3</span></h1>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setIsGuideOpen(true)}
                                 className="flex flex-col items-center justify-center text-gray-600 bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition-colors mr-1 h-full min-h-[44px]"
                             >
                                 <BookOpen size={16} className="mb-0.5" />
-                                <span className="whitespace-nowrap">가이드</span>
+                                <span className="whitespace-nowrap">가?�드</span>
                             </button>
                             {isAdmin && (
                                 <button
@@ -120,7 +120,7 @@ const VehicleListPage: React.FC = () => {
                                 className="flex flex-col items-center justify-center text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-lg text-[10px] font-bold hover:bg-gray-50 transition-colors h-full min-h-[44px]"
                             >
                                 <BookOpen size={16} className="mb-0.5" />
-                                <span className="whitespace-nowrap">나의 요청</span>
+                                <span className="whitespace-nowrap">?�의 ?�청</span>
                             </button>
                             <button onClick={handleLogout} className="text-gray-500 p-2 hover:bg-gray-100 rounded-full ml-1">
                                 <LogOut size={20} />
@@ -135,7 +135,7 @@ const VehicleListPage: React.FC = () => {
                         </div>
                         <div>
                             <div className="flex items-center space-x-2">
-                                <span className="font-bold text-gray-900">{user?.displayName || '사용자'}</span>
+                                <span className="font-bold text-gray-900">{user?.displayName || '?�용??}</span>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${userRole === 'admin' ? 'bg-purple-100 text-purple-800' : userRole === 'approver' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                                     {getRoleDisplayName()}
                                 </span>
@@ -149,7 +149,7 @@ const VehicleListPage: React.FC = () => {
             {/* Content */}
             <main className="max-w-md mx-auto px-4 py-6">
                 <div className="flex justify-between items-end mb-4">
-                    <h2 className="text-xl font-bold text-gray-900">차량 선택</h2>
+                    <h2 className="text-xl font-bold text-gray-900">차량 ?�택</h2>
                     {vehicles.length === 0 && (
                         <button
                             onClick={seedData}
@@ -157,20 +157,20 @@ const VehicleListPage: React.FC = () => {
                             className="text-sm text-blue-600 flex items-center disabled:opacity-50"
                         >
                             <Plus size={14} className="mr-1" />
-                            {seeding ? '생성 중...' : '테스트 데이터 생성'}
+                            {seeding ? '?�성 �?..' : '?�스???�이???�성'}
                         </button>
                     )}
                 </div>
 
                 {vehicles.length === 0 ? (
                     <div className="text-center py-10 text-gray-500 bg-white rounded-xl border border-dashed">
-                        <p className="mb-2">등록된 차량이 없습니다.</p>
+                        <p className="mb-2">?�록??차량???�습?�다.</p>
                         <button
                             onClick={seedData}
                             disabled={seeding}
                             className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
                         >
-                            {seeding ? '데이터 생성 중...' : '테스트 데이터 생성하기'}
+                            {seeding ? '?�이???�성 �?..' : '?�스???�이???�성?�기'}
                         </button>
                     </div>
                 ) : (
@@ -215,7 +215,7 @@ const VehicleListPage: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
                         <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                            <h3 className="text-xl font-bold text-gray-800">📱 앱 사용자 가이드</h3>
+                            <h3 className="text-xl font-bold text-gray-800">?�� ???�용??가?�드</h3>
                             <button onClick={() => setIsGuideOpen(false)} className="text-gray-500 hover:text-gray-700 p-1 bg-gray-200 rounded-full">
                                 <X size={20} />
                             </button>
@@ -228,7 +228,7 @@ const VehicleListPage: React.FC = () => {
                                 onClick={() => setIsGuideOpen(false)}
                                 className="px-6 py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-900"
                             >
-                                닫기
+                                ?�기
                             </button>
                         </div>
                     </div>

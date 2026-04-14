@@ -15,26 +15,26 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         </button>
         <div className="p-8 space-y-6 text-sm text-gray-800 leading-relaxed font-sans">
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-            <p className="font-bold text-blue-700">📌 관리자용 매뉴얼 (PC 환경 권장)</p>
-            <p className="text-gray-600">구글 시트 연동을 위한 Apps Script 설정 방법입니다. <span className="font-bold text-blue-600">(v5.5.2)</span></p>
+            <p className="font-bold text-blue-700">?�� 관리자??매뉴??(PC ?�경 권장)</p>
+            <p className="text-gray-600">구�? ?�트 ?�동???�한 Apps Script ?�정 방법?�니?? <span className="font-bold text-blue-600">(v5.5.3)</span></p>
           </div>
 
           <section>
-            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">1. 구글 시트 준비</h3>
+            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">1. 구�? ?�트 준�?/h3>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>새 구글 스프레드시트를 생성합니다.</li>
-              <li>시트(탭) 이름을 <code>DB</code>로 변경합니다. (대소문자 구분)</li>
-              <li>중요: 2번째 열(B열)에 <strong>종료일</strong>이 추가됩니다. 기존 시트를 사용할 경우 B열을 삽입해주세요.</li>
-              <li><code>DB</code> 시트의 1행(헤더)은 놔두거나 비워워도 되지만, 앱이 자동으로 행을 추가합니다.</li>
+              <li>??구�? ?�프?�드?�트�??�성?�니??</li>
+              <li>?�트(?? ?�름??<code>DB</code>�?변경합?�다. (?�?�문??구분)</li>
+              <li>중요: 2번째 ??B????<strong>종료??/strong>??추�??�니?? 기존 ?�트�??�용??경우 B?�을 ?�입?�주?�요.</li>
+              <li><code>DB</code> ?�트??1???�더)?� ?�두거나 비워?�도 ?��?�? ?�이 ?�동?�로 ?�을 추�??�니??</li>
             </ol>
           </section>
 
           <section>
-            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">2. Apps Script 생성</h3>
+            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">2. Apps Script ?�성</h3>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>스프레드시트 메뉴에서 <strong>[확장 프로그램] &gt; [Apps Script]</strong>를 클릭합니다.</li>
-              <li>기존 <code>Code.gs</code>의 내용을 모두 지웁니다.</li>
-              <li>아래 코드를 복사해서 붙여넣습니다.</li>
+              <li>?�프?�드?�트 메뉴?�서 <strong>[?�장 ?�로그램] &gt; [Apps Script]</strong>�??�릭?�니??</li>
+              <li>기존 <code>Code.gs</code>???�용??모두 지?�니??</li>
+              <li>?�래 코드�?복사?�서 붙여?�습?�다.</li>
             </ol>
             <div className="bg-slate-900 text-slate-50 p-4 rounded-lg mt-3 font-mono text-xs overflow-x-auto">
               <pre>{`function doPost(e) {
@@ -74,8 +74,8 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         // --- Prepare Data Row ---
         let note = data.remarks || '';
         if (!note) {
-            if (data.passengerName) note += \`동승: \${data.passengerName} \`;
-            if (data.stopovers && data.stopovers.length > 0) note += \`경유: \${data.stopovers.length}곳 \`;
+            if (data.passengerName) note += \`?�승: \${data.passengerName} \`;
+            if (data.stopovers && data.stopovers.length > 0) note += \`경유: \${data.stopovers.length}�?\`;
         }
 
         let driveImageUrl = '';
@@ -84,29 +84,29 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
         }
 
         const row = [
-            data.startDate || data.date,                   // 1. 시작일
-            data.endDate || data.startDate || data.date,   // 2. 종료일
+            data.startDate || data.date,                   // 1. ?�작??
+            data.endDate || data.startDate || data.date,   // 2. 종료??
             getKoreanType(data.type),                      // 3. 구분
             \`\${data.vehicleName} (\${data.vehiclePlate})\`,  // 4. 차량
-            data.userName,                                 // 5. 사용자명
-            data.userId || '',                             // 6. 아이디
+            data.userName,                                 // 5. ?�용?�명
+            data.userId || '',                             // 6. ?�이??
             data.purpose || '',                            // 7. 목적
-            data.startTime || '',                          // 8. 출발시간
-            data.endTime || '',                            // 9. 도착시간
-            data.startMileage || '',                       // 10. 출발누적거리
-            data.endMileage || '',                         // 11. 도착누적거리
+            data.startTime || '',                          // 8. 출발?�간
+            data.endTime || '',                            // 9. ?�착?�간
+            data.startMileage || '',                       // 10. 출발?�적거리
+            data.endMileage || '',                         // 11. ?�착?�적거리
             data.distance || '',                           // 12. 주행거리(km)
-            data.amount || '',                             // 13. 주유량(L)
-            data.pricePerLiter || '',                      // 14. 주유단가
-            data.destination || data.station || data.shop || '', // 15. 장소
-            data.item || '',                               // 16. 정비항목
+            data.amount || '',                             // 13. 주유??L)
+            data.pricePerLiter || '',                      // 14. 주유?��?
+            data.destination || data.station || data.shop || '', // 15. ?�소
+            data.item || '',                               // 16. ?�비??��
             data.cost || '',                               // 17. 금액
-            data.paymentMethod || '',                      // 18. 결제수단
-            data.passengerDetail || '',                    // 19. 동승자
+            data.paymentMethod || '',                      // 18. 결제?�단
+            data.passengerDetail || '',                    // 19. ?�승??
             data.stopoverDetail || '',                     // 20. 경유지
-            (data.type === 'fueling' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',      // 21. 주유이미지
-            (data.type === 'maintenance' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',  // 22. 정비이미지
-            new Date().toLocaleString(),                   // 23. 등록일시
+            (data.type === 'fueling' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',      // 21. 주유?��?지
+            (data.type === 'maintenance' && driveImageUrl) ? (driveImageUrl.startsWith('Error') ? driveImageUrl : \`=IMAGE("\${driveImageUrl}")\`) : '',  // 22. ?�비?��?지
+            new Date().toLocaleString(),                   // 23. ?�록?�시
             data.id || ''                                  // 24. Log ID
         ];
 
@@ -143,16 +143,16 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
 
                 function getKoreanType(type) {
     switch (type) {
-        case 'driving': return '운행';
+        case 'driving': return '?�행';
                 case 'fueling': return '주유';
-                case 'maintenance': return '정비';
+                case 'maintenance': return '?�비';
                 default: return type;
     }
 }
 
                 function saveImageToDrive(imageUrl) {
   try {
-    // 지정하신 공유 폴더 ID
+    // 지?�하??공유 ?�더 ID
     const FOLDER_ID = "1t3Cad0Z_1hFDz70o6dJS2G-Rp0VYKfXf";
 
                 // 1. Get Folder by ID
@@ -162,11 +162,11 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
                 const response = UrlFetchApp.fetch(imageUrl);
                 const blob = response.getBlob();
 
-                // 3. Create File in Drive (이름 중복 방지 타임스탬프)
+                // 3. Create File in Drive (?�름 중복 방�? ?�?�스?�프)
                 blob.setName(new Date().toISOString().replace(/[:.]/g, '-') + "_image.jpg");
                 const file = folder.createFile(blob);
 
-                // 4. Set Permission (링크가 있는 모든 사용자 보기 권한)
+                // 4. Set Permission (링크가 ?�는 모든 ?�용??보기 권한)
                 file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
                 // 5. Return Direct Link
@@ -182,15 +182,15 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
           </section>
 
           <section>
-            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">3. (중요) 권한 설정 강제 적용</h3>
+            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">3. (중요) 권한 ?�정 강제 ?�용</h3>
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-3 text-sm">
-              <p><strong>"권한이 없습니다" 오류가 발생할 경우</strong>, 아래 과정을 따라 권한 스코프를 직접 파일에 명시해야 합니다.</p>
+              <p><strong>"권한???�습?�다" ?�류가 발생??경우</strong>, ?�래 과정???�라 권한 ?�코?��? 직접 ?�일??명시?�야 ?�니??</p>
             </div>
             <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
-              <li>Apps Script 편집기 좌측 메뉴의 <strong>[프로젝트 설정]</strong> (톱니바퀴 아이콘)을 클릭합니다.</li>
-              <li><strong>"편집기에서 'appsscript.json' 매니페스트 파일 표시"</strong> 체크박스를 선택합니다.</li>
-              <li>좌측 [편집기] (코드 아이콘)로 돌아오면 파일 목록에 <code>appsscript.json</code>이 보입니다. 클릭하세요.</li>
-              <li>파일 내용을 아래와 같이 수정(덮어쓰기)합니다.</li>
+              <li>Apps Script ?�집�?좌측 메뉴??<strong>[?�로?�트 ?�정]</strong> (?�니바�??�이�????�릭?�니??</li>
+              <li><strong>"?�집기에??'appsscript.json' 매니?�스???�일 ?�시"</strong> 체크박스�??�택?�니??</li>
+              <li>좌측 [?�집�? (코드 ?�이�?�??�아?�면 ?�일 목록??<code>appsscript.json</code>??보입?�다. ?�릭?�세??</li>
+              <li>?�일 ?�용???�래?� 같이 ?�정(??��?�기)?�니??</li>
             </ol>
             <div className="bg-slate-900 text-slate-50 p-4 rounded-lg mt-3 font-mono text-xs overflow-x-auto">
               <pre>{`{
@@ -211,17 +211,17 @@ export const AppScriptManual: React.FC<ManualProps> = ({ onClose }) => {
 }`}</pre>
             </div>
             <p className="mt-2 text-sm text-gray-600">
-              * 수정 후 <strong>반드시 다시 [배포] &gt; [새 배포]</strong>를 해야 적용됩니다.<br />
-              * <strong>testPermissions</strong> 함수를 한 번 실행하여 권한 승인 창을 띄워주세요.
+              * ?�정 ??<strong>반드???�시 [배포] &gt; [??배포]</strong>�??�야 ?�용?�니??<br />
+              * <strong>testPermissions</strong> ?�수�???�??�행?�여 권한 ?�인 창을 ?�워주세??
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">4. 배포 및 연결</h3>
+            <h3 className="font-bold text-lg text-slate-800 border-b pb-2 mb-3">4. 배포 �??�결</h3>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>우측 상단 <strong>[배포] &gt; [새 배포]</strong> 클릭 (버전 업 필수!)</li>
-              <li>생성된 <strong>웹 앱 URL</strong>을 복사합니다.</li>
-              <li>차량관리 앱 관리자 페이지 &gt; [설정] &gt; [구글 시트 연동 설정]에 붙여넣고 저장합니다.</li>
+              <li>?�측 ?�단 <strong>[배포] &gt; [??배포]</strong> ?�릭 (버전 ???�수!)</li>
+              <li>?�성??<strong>????URL</strong>??복사?�니??</li>
+              <li>차량관�???관리자 ?�이지 &gt; [?�정] &gt; [구�? ?�트 ?�동 ?�정]??붙여?�고 ?�?�합?�다.</li>
             </ol>
           </section>
         </div>

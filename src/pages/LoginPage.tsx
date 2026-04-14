@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
             const checkUser = async () => {
                 if (user.email && !user.email.endsWith('@together63.kr')) {
                     await auth.signOut();
-                    setError('접근 권한이 없습니다. @together63.kr 계정으로만 로그인할 수 있습니다.');
+                    setError('?�근 권한???�습?�다. @together63.kr 계정?�로�?로그?�할 ???�습?�다.');
                 } else {
                     navigate('/');
                 }
@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
 
         // Minimal validation
         if (!email.endsWith('@together63.kr')) {
-            setError('@together63.kr 이메일만 사용할 수 있습니다.');
+            setError('@together63.kr ?�메?�만 ?�용?????�습?�다.');
             setIsLoading(false);
             return;
         }
@@ -62,15 +62,15 @@ const LoginPage: React.FC = () => {
         } catch (err: any) {
             console.error(err);
             if (err.code === 'auth/email-already-in-use') {
-                setError('이미 사용 중인 이메일입니다.');
+                setError('?��? ?�용 중인 ?�메?�입?�다.');
             } else if (err.code === 'auth/invalid-email') {
-                setError('유효하지 않은 이메일 형식입니다.');
+                setError('?�효?��? ?��? ?�메???�식?�니??');
             } else if (err.code === 'auth/weak-password') {
-                setError('비밀번호는 6자 이상이어야 합니다.');
+                setError('비�?번호??6???�상?�어???�니??');
             } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+                setError('?�메???�는 비�?번호가 ?�바르�? ?�습?�다.');
             } else {
-                setError('오류가 발생했습니다: ' + err.message);
+                setError('?�류가 발생?�습?�다: ' + err.message);
             }
             setIsLoading(false);
         }
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
             <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                        동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.2</span>
+                        ?�행빌리지 차량관�?<span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.3</span>
                     </h2>
                     <div className="mt-8 text-center text-gray-500 text-xs">
                         <p>© 2024 Donghaeng Village. All rights reserved.</p>
@@ -94,20 +94,20 @@ const LoginPage: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {isSignUp && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">?�름</label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                                placeholder="실명 입력"
+                                placeholder="?�명 ?�력"
                                 required={isSignUp}
                             />
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">?�메??/label>
                         <input
                             type="email"
                             value={email}
@@ -119,13 +119,13 @@ const LoginPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">비�?번호</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="6자 이상 입력"
+                            placeholder="6???�상 ?�력"
                             required
                         />
                     </div>
@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
                                 : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
                             }`}
                     >
-                        {isLoading ? '처리 중...' : (isSignUp ? '회원가입' : '로그인')}
+                        {isLoading ? '처리 �?..' : (isSignUp ? '?�원가?? : '로그??)}
                     </button>
                 </form>
 
@@ -155,15 +155,15 @@ const LoginPage: React.FC = () => {
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium block w-full"
                     >
                         {isSignUp
-                            ? '이미 계정이 있으신가요? 로그인하기'
-                            : '계정이 없으신가요? 회원가입하기'}
+                            ? '?��? 계정???�으?��??? 로그?�하�?
+                            : '계정???�으?��??? ?�원가?�하�?}
                     </button>
 
                     <button
                         onClick={() => setShowInstallGuide(true)}
                         className="text-gray-500 hover:text-gray-700 text-sm flex items-center justify-center gap-1 mx-auto"
                     >
-                        <HelpCircle size={14} /> 앱 설치 방법
+                        <HelpCircle size={14} /> ???�치 방법
                     </button>
                 </div>
 
@@ -175,7 +175,7 @@ const LoginPage: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowInstallGuide(false)}>
                     <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">앱 설치 방법</h3>
+                            <h3 className="text-lg font-bold text-gray-800">???�치 방법</h3>
                             <button onClick={() => setShowInstallGuide(false)} className="text-gray-400 hover:text-gray-600">
                                 <X size={24} />
                             </button>
@@ -184,23 +184,23 @@ const LoginPage: React.FC = () => {
                         <div className="space-y-6">
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-                                    <span className="text-xl">🍎</span> 아이폰 (Safari)
+                                    <span className="text-xl">?��</span> ?�이??(Safari)
                                 </h4>
                                 <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
-                                    <li>Safari 브라우저 하단의 <Share className="inline w-4 h-4 mx-1" /> <strong>공유 버튼</strong>을 누르세요.</li>
-                                    <li>메뉴를 내려서 <PlusSquare className="inline w-4 h-4 mx-1" /> <strong>'홈 화면에 추가'</strong>를 선택하세요.</li>
-                                    <li>우측 상단의 <strong>'추가'</strong>를 누르면 설치 완료!</li>
+                                    <li>Safari 브라?��? ?�단??<Share className="inline w-4 h-4 mx-1" /> <strong>공유 버튼</strong>???�르?�요.</li>
+                                    <li>메뉴�??�려??<PlusSquare className="inline w-4 h-4 mx-1" /> <strong>'???�면??추�?'</strong>�??�택?�세??</li>
+                                    <li>?�측 ?�단??<strong>'추�?'</strong>�??�르�??�치 ?�료!</li>
                                 </ol>
                             </div>
 
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-                                    <span className="text-xl">🤖</span> 안드로이드 (Chrome)
+                                    <span className="text-xl">?��</span> ?�드로이??(Chrome)
                                 </h4>
                                 <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
-                                    <li>Chrome 브라우저 우측 상단의 <MoreVertical className="inline w-4 h-4 mx-1" /> <strong>메뉴 버튼</strong>을 누르세요.</li>
-                                    <li><Download className="inline w-4 h-4 mx-1" /> <strong>'앱 설치'</strong> 또는 <strong>'홈 화면에 추가'</strong>를 선택하세요.</li>
-                                    <li>안내에 따라 설치하면 완료!</li>
+                                    <li>Chrome 브라?��? ?�측 ?�단??<MoreVertical className="inline w-4 h-4 mx-1" /> <strong>메뉴 버튼</strong>???�르?�요.</li>
+                                    <li><Download className="inline w-4 h-4 mx-1" /> <strong>'???�치'</strong> ?�는 <strong>'???�면??추�?'</strong>�??�택?�세??</li>
+                                    <li>?�내???�라 ?�치?�면 ?�료!</li>
                                 </ol>
                             </div>
                         </div>
@@ -209,7 +209,7 @@ const LoginPage: React.FC = () => {
                             onClick={() => setShowInstallGuide(false)}
                             className="w-full mt-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-lg transition-colors"
                         >
-                            닫기
+                            ?�기
                         </button>
                     </div>
                 </div>
