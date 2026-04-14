@@ -11,7 +11,7 @@ import { SettingsTab } from '../components/admin/SettingsTab';
 import { UserManagementTab } from '../components/admin/UserManagementTab';
 import { VehicleModal } from '../components/admin/VehicleModal';
 import { SlackWebhookManual } from '../manuals/SlackWebhookManual';
-import { unifiedDeleteLog } from '../utils/logUtils';
+import { unifiedDeleteLog, unifiedEditLog } from '../utils/logUtils';
 import { BusinessTripManual } from '../manuals/BusinessTripManual';
 import { AppScriptManual } from '../manuals/AppScriptManual';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -63,6 +63,7 @@ const AdminPage: React.FC = () => {
 
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
     const [editingLog, setEditingLog] = useState<any>(null);
+    const [originalLogSnapshot, setOriginalLogSnapshot] = useState<any>(null);
     const [processingLogId, setProcessingLogId] = useState<string | null>(null);
     const [isLogSaving, setIsLogSaving] = useState(false);
 
@@ -593,10 +594,51 @@ const AdminPage: React.FC = () => {
                     (err) => alert('삭제 처리 중 오류: ' + err)
                 );
             } else {
-                await updateDoc(doc(db, 'modificationRequests', req.id), { status: 'approved', processedAt: serverTimestamp() });
-                setSuccessModal({ isOpen: true, message: '승인 완료' });
-                fetchRequests();
-                fetchAllLogs(); // Also refresh logs to show immediate effect
+                // === FIX: Actually apply the changedData to the target log ===
+                try {
+                    const targetCollection = req.targetCollection || 'drivingLogs';
+                    const targetDocRef = doc(db, targetCollection, req.targetDocId);
+                    const targetDocSnap = await getDoc(targetDocRef);
+
+                    if (!targetDocSnap.exists()) {
+                        alert('대상 문서를 찾을 수 없습니다.');
+                        return;
+                    }
+
+                    const currentData = { id: req.targetDocId, ...targetDocSnap.data() } as any;
+                    const mergedData = { ...currentData, ...req.changedData };
+
+                    // Determine type string for unifiedEditLog
+                    const typeMap: Record<string, string> = { 'drivingLogs': 'driving', 'fuelingLogs': 'fueling', 'maintenanceLogs': 'maintenance' };
+                    currentData.type = typeMap[targetCollection] || currentData.type;
+                    mergedData.type = typeMap[targetCollection] || mergedData.type;
+
+                    await unifiedEditLog(
+                        currentData,
+                        mergedData,
+                        systemSettings.sheetConfig?.url,
+                        async (msg) => {
+                            await updateDoc(doc(db, 'modificationRequests', req.id), { status: 'approved', processedAt: serverTimestamp() });
+                            setSuccessModal({ isOpen: true, message: '승인 완료: ' + msg });
+
+                            // Slack Notification
+                            if (systemSettings.slackWebhook) {
+                                sendSlackNotification(
+                                    systemSettings.slackWebhook,
+                                    `✅ [수정 승인] ${req.requesterName || '사용자'}님의 수정 요청이 승인되었습니다.\n\n` +
+                                    `📋 *수정된 내용*\n${getLogSummary(mergedData, targetCollection)}`
+                                );
+                            }
+
+                            fetchRequests();
+                            fetchAllLogs();
+                        },
+                        (err) => alert('수정 처리 중 오류: ' + err)
+                    );
+                } catch (editErr) {
+                    console.error('Approve edit failed:', editErr);
+                    alert('수정 승인 처리 실패: ' + editErr);
+                }
             }
         } catch (e) {
             console.error(e);
@@ -763,7 +805,6 @@ const AdminPage: React.FC = () => {
         setIsLogSaving(true);
         try {
             // Normalize User Data (Ensure ID is Email, Name is Display Name)
-            // This fixes legacy data where ID was UID or Name was Email
             const matchedUser = users.find(u => u.uid === editingLog.userId || u.email === editingLog.userId);
             const finalLogData = {
                 ...editingLog,
@@ -792,6 +833,7 @@ const AdminPage: React.FC = () => {
                 finalLogData.passengerCount = finalLogData.passengerDetail.length;
             }
 
+            // --- AUTOMATION: Consumable Update on Edit ---
             let collectionName = '';
             if (['driving', '운행'].includes(finalLogData.type)) collectionName = 'drivingLogs';
             else if (['fueling', '주유'].includes(finalLogData.type)) collectionName = 'fuelingLogs';
@@ -803,93 +845,67 @@ const AdminPage: React.FC = () => {
                 return;
             }
 
-            // Normalize type to English before saving
-            if (collectionName === 'drivingLogs') finalLogData.type = 'driving';
-            else if (collectionName === 'fuelingLogs') finalLogData.type = 'fueling';
-            else if (collectionName === 'maintenanceLogs') finalLogData.type = 'maintenance';
-
-            await updateDoc(doc(db, collectionName, finalLogData.id), finalLogData);
-
-            // --- AUTOMATION: Consumable Update on Edit ---
-            if (finalLogData.type === 'maintenance' && finalLogData.item) {
-                const matchedSetting = systemSettings.consumableSettings.find((s: any) => s.label === finalLogData.item);
-                if (matchedSetting) {
-                    // Update Vehicle Consumables
-                    const vehicleRef = doc(db, 'vehicles', finalLogData.vehicleId);
-                    const updateField = `consumables.${finalLogData.item}`;
-                    const mileageToUpdate = finalLogData.maintenanceMileage ? Number(finalLogData.maintenanceMileage) : 0;
-
-                    if (mileageToUpdate > 0) {
-                        try {
-                            await updateDoc(vehicleRef, {
-                                [updateField]: {
-                                    lastDate: finalLogData.date,
-                                    lastMileage: mileageToUpdate
-                                }
-                            });
-                            console.log(`Auto-updated consumable (Admin Edit): ${finalLogData.item}`);
-                        } catch (e) {
-                            console.error("Failed to auto-update consumable from Admin:", e);
+            if (finalLogData.type === 'maintenance' || finalLogData.type === '정비') {
+                if (finalLogData.item) {
+                    const matchedSetting = systemSettings.consumableSettings.find((s: any) => s.label === finalLogData.item);
+                    if (matchedSetting) {
+                        const vehicleRef = doc(db, 'vehicles', finalLogData.vehicleId);
+                        const updateField = `consumables.${finalLogData.item}`;
+                        const mileageToUpdate = finalLogData.maintenanceMileage ? Number(finalLogData.maintenanceMileage) : 0;
+                        if (mileageToUpdate > 0) {
+                            try {
+                                await updateDoc(vehicleRef, {
+                                    [updateField]: {
+                                        lastDate: finalLogData.date,
+                                        lastMileage: mileageToUpdate
+                                    }
+                                });
+                                console.log(`Auto-updated consumable (Admin Edit): ${finalLogData.item}`);
+                            } catch (e) {
+                                console.error("Failed to auto-update consumable from Admin:", e);
+                            }
                         }
                     }
                 }
             }
 
-            if (finalLogData.requestId) {
-                // If this edit was triggered from a Request
-                await updateDoc(doc(db, 'modificationRequests', finalLogData.requestId), {
-                    status: 'approved',
-                    processedAt: serverTimestamp()
-                });
+            // === Use unifiedEditLog for DB update + mileage chain sync + sheet sync ===
+            const originalData = originalLogSnapshot || finalLogData; // Fallback if snapshot missing
+            await unifiedEditLog(
+                originalData,
+                finalLogData,
+                systemSettings.sheetConfig?.url,
+                async (msg) => {
+                    // If this edit was triggered from a modification Request, mark it approved
+                    if (finalLogData.requestId) {
+                        await updateDoc(doc(db, 'modificationRequests', finalLogData.requestId), {
+                            status: 'approved',
+                            processedAt: serverTimestamp()
+                        });
 
-                // Notify User via Slack
-                const requestDoc = requests.find(r => r.id === finalLogData.requestId);
-                if (requestDoc && systemSettings.slackWebhook) {
-                    sendSlackNotification(
-                        systemSettings.slackWebhook,
-                        `✅ [수정 완료] ${requestDoc.requesterName || '사용자'}님의 수정 요청이 처리되었습니다.\n\n` +
-                        `📋 *수정된 내용*\n${getLogSummary(finalLogData, requestDoc.targetCollection)}`
-                    );
+                        const requestDoc = requests.find(r => r.id === finalLogData.requestId);
+                        if (requestDoc && systemSettings.slackWebhook) {
+                            sendSlackNotification(
+                                systemSettings.slackWebhook,
+                                `✅ [수정 완료] ${requestDoc.requesterName || '사용자'}님의 수정 요청이 처리되었습니다.\n\n` +
+                                `📋 *수정된 내용*\n${getLogSummary(finalLogData, requestDoc.targetCollection)}`
+                            );
+                        }
+                    }
+
+                    setSuccessModal({ isOpen: true, message: msg });
+                    setIsLogModalOpen(false);
+                    setEditingLog(null);
+                    setOriginalLogSnapshot(null);
+                    setNewImageFile(null);
+                    fetchAllLogs();
+                    fetchRequests();
+                },
+                (err) => {
+                    console.error(err);
+                    alert('수정 실패: ' + err);
                 }
-            }
-
-            // Sync to Google Sheet
-            try {
-                // Format Data for Sheet
-                const sheetPayload = {
-                    action: 'write',
-                    ...finalLogData,
-                    id: finalLogData.id,
-                    logId: finalLogData.id,
-                    startDate: finalLogData.startDate || finalLogData.date,
-                    endDate: finalLogData.endDate || finalLogData.date,
-                    date: finalLogData.startDate || finalLogData.date, // Legacy
-                    distance: finalLogData.totalDistance, // Map totalDistance to distance column
-                    startTime: finalLogData.startTime && finalLogData.startTime.includes('T') ? new Date(finalLogData.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : finalLogData.startTime,
-                    endTime: finalLogData.endTime && finalLogData.endTime.includes('T') ? new Date(finalLogData.endTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : finalLogData.endTime,
-                    passengerName: finalLogData.passengerName,
-                    passengerDetail: finalLogData.passengerName,
-                    amount: finalLogData.amount,
-                    cost: finalLogData.cost,
-                    item: finalLogData.item,
-                    shop: finalLogData.shop,
-                    station: finalLogData.station,
-                    pricePerLiter: finalLogData.pricePerLiter,
-                    paymentMethod: finalLogData.paymentMethod
-                };
-
-                await sendToGoogleSheet(sheetPayload, systemSettings.sheetConfig?.url);
-            } catch (sheetError) {
-                console.error("Google Sheet Sync Error:", sheetError);
-                // Non-fatal, continue
-            }
-
-            setSuccessModal({ isOpen: true, message: '저장되었습니다.' });
-            setIsLogModalOpen(false);
-            setEditingLog(null);
-            setNewImageFile(null);
-            fetchAllLogs();
-            fetchRequests(); // Refresh requests to show status change
+            );
         } catch (e) {
             console.error(e);
             alert('수정 실패');
@@ -1127,7 +1143,7 @@ const AdminPage: React.FC = () => {
 
                                         {/* Action Buttons */}
                                         <div className="flex justify-end mt-4 space-x-2">
-                                            <button onClick={() => { setEditingLog({ ...log }); setNewImageFile(null); setIsLogModalOpen(true); }} className="p-1.5 bg-gray-100 rounded hover:bg-gray-200">
+                                            <button onClick={() => { setOriginalLogSnapshot({ ...log }); setEditingLog({ ...log }); setNewImageFile(null); setIsLogModalOpen(true); }} className="p-1.5 bg-gray-100 rounded hover:bg-gray-200">
                                                 <Edit2 size={14} className="text-gray-600" />
                                             </button>
                                             <button
@@ -1309,7 +1325,9 @@ const AdminPage: React.FC = () => {
                                             const typeMap: Record<string, string> = { 'drivingLogs': '운행', 'fuelingLogs': '주유', 'maintenanceLogs': '정비' };
                                             const derivedType = typeMap[req.targetCollection] || '운행';
                                             // Pass requestId to tracking
-                                            setEditingLog({ ...req.originalData, id: req.targetDocId, type: derivedType, requestId: req.id });
+                                            const logForEdit = { ...req.originalData, id: req.targetDocId, type: derivedType, requestId: req.id };
+                                            setOriginalLogSnapshot({ ...logForEdit });
+                                            setEditingLog(logForEdit);
                                             setIsLogModalOpen(true);
                                         }}
                                         className="px-3 py-2 bg-green-100 text-green-700 rounded font-bold text-sm hover:bg-green-200 flex items-center"
