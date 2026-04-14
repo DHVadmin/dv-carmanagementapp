@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ---------------------------------------------------------
+    // 1. 권한 확인 함수 (Helper Functions)
+    // ---------------------------------------------------------
+    
+    // 로그인 + 도메인 확인
+    function isAuth() {
+      return request.auth != null && request.auth.token.email.matches('.*@together63.kr');
+    }
+
+    // 관리자 여부 확인 (admin@together63.kr 이메일 또는 users 컬렉션의 role 필드 확인)
+    function isAdmin() {
+      return isAuth() && (
+        request.auth.token.email == 'admin@together63.kr' || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // 결재자 여부 확인 (users 컬렉션의 role 필드 확인)
+    function isApprover() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'approver';
+    }
+
+    // ---------------------------------------------------------
+    // 2. 컬렉션별 규칙 (Collection Rules)
+    // ---------------------------------------------------------
+
+    // 🚗 차량 정보 (vehicles)
+    // - 조회(Read): 누구나 가능 (차량을 선택해야 하므로)
+    // - 수정/삭제(Write): 관리자만 가능
+    // 🚗 차량 정보 (vehicles)
+    // - 조회(Read): 누구나 가능
+    // - 생성/삭제(Create/Delete): 관리자만 가능
+    // - 수정(Update): 관리자 전체 가능 / 일반 사용자는 'lastMileage' 필드만 수정 가능
+    match /vehicles/{vehicleId} {
+      allow read: if isAuth();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMileage']));
+    }
+
+    // 📝 운행 정보 (drivingLogs)
+    // - 조회(Read): 누구나 가능
+    // - 생성(Create): 누구나 가능 (운행일지 등록)
+    // - 수정/삭제(Update/Delete): 관리자만 가능
+    match /drivingLogs/{logId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      // Allow update if Admin OR Approver OR (User owns the log AND status is pending/rejected)
+      allow update: if isAdmin() || isApprover() || (isAuth() && resource.data.userId == request.auth.token.email && (resource.data.tripStatus == 'pending' || resource.data.tripStatus == 'rejected'));
+      allow delete: if isAdmin() || isApprover();
+    }
+
+    // 🔧 정비 정보 (maintenanceLogs) - 추후 구현 대비
+    match /maintenanceLogs/{logId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin() || isApprover();
+    }
+
+    // ⛽ 주유 정보 (fuelingLogs) - 추후 구현 대비
+    match /fuelingLogs/{logId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin() || isApprover();
+    }
+
+    // ⚙️ 설정 정보 (settings)
+    // - 조회(Read): 누구나 가능
+    // - 수정(Write): 관리자만 가능
+    match /settings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // 🔄 수정 요청 (modificationRequests)
+    // - 조회(Read): 관리자 또는 본인(추후 구현 시) - 일단 관리자/생성자
+    // - 생성(Create): 누구나 가능
+    // - 수정(Update): 관리자만
+    match /modificationRequests/{requestId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAdmin();
+    }
+
+    // 👤 사용자 정보 (users)
+    // - 조회(Read): 누구나 가능 (로그에 사용자 이름 표시 위해)
+    // - 수정(Write): 본인 또는 관리자만
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow write: if isAuth() && (request.auth.uid == userId || isAdmin() || isApprover());
+    }
+  }
+}

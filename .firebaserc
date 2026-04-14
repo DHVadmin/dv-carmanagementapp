@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "dv-carmanagementapp"
+  },
+  "targets": {
+    "dv-carmanagementapp": {
+      "storage": {
+        "main": [
+          "dv-carmanagementapp.firebasestorage.app"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
