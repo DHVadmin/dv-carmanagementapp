@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Mobile Styles */
+body {
+    @apply bg-gray-50 text-gray-900;
+    overscroll-behavior-y: none;
+}
