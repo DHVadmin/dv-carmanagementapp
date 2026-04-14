@@ -72,6 +72,7 @@ const DrivingLogPage: React.FC = () => {
     const [fuelCost, setFuelCost] = useState('');
     const [pricePerLiter, setPricePerLiter] = useState('');
     const [fuelFundingSource, setFuelFundingSource] = useState('법인전입금');
+    const [fuelMileage, setFuelMileage] = useState<string>('');
 
     // 2. Fuel Cost Auto-Calculation
     useEffect(() => {
@@ -705,6 +706,7 @@ const DrivingLogPage: React.FC = () => {
                 paymentMethod: fuelFundingSource,
                 station,
                 imageUrl,
+                ...(fuelMileage !== '' ? { fuelMileage: Number(fuelMileage) } : {}),
                 timestamp: serverTimestamp()
             };
 
@@ -728,6 +730,7 @@ const DrivingLogPage: React.FC = () => {
                 paymentMethod: fuelFundingSource,
                 station,
                 imageUrl,
+                ...(fuelMileage !== '' ? { fuelMileage: Number(fuelMileage) } : {}),
                 timestamp: new Date().toISOString()
             };
 
@@ -742,7 +745,7 @@ const DrivingLogPage: React.FC = () => {
             console.log("Fueling Log Saved Successfully.");
 
             // Reset Form
-            setFuelAmount(''); setFuelCost(''); setStation(''); setImageFile(null);
+            setFuelAmount(''); setFuelCost(''); setStation(''); setImageFile(null); setFuelMileage('');
             if (fuelImageRef.current) fuelImageRef.current.value = '';
 
             // Update & Navigate
@@ -1393,6 +1396,22 @@ const DrivingLogPage: React.FC = () => {
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+
+                            {/* Mileage Input */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">주유 시 주행거리 (km)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        value={fuelMileage}
+                                        onChange={(e) => setFuelMileage(e.target.value)}
+                                        className="block w-full px-4 py-3 border border-gray-300 rounded-lg"
+                                        placeholder={`현재 누적 주행거리 입력 (선택)`}
+                                    />
+                                    <span className="absolute right-3 top-3 text-sm text-gray-400">km</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">* 선택사항입니다. 입력 시 기록에 함께 저장됩니다.</p>
                             </div>
 
                             {/* Photo Upload */}

@@ -3,8 +3,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-import { getFunctions } from "firebase/functions";
-
 const firebaseConfig = {
     // TODO: Replace with your project's config object
     apiKey: "AIzaSyC0q0pcu5oosz_bF3KidKQB9T8QVoe7ETo",
@@ -20,4 +18,4 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const functions = getFunctions(app, 'us-central1'); // Region is important!
+

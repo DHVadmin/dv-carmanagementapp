@@ -6,10 +6,6 @@
     "rules": "storage.rules",
     "target": "main"
   },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
   "hosting": {
     "public": "dist",
     "ignore": [

@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { doc, deleteDoc, getDocs, query, collection, where, orderBy, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, deleteDoc, getDocs, query, collection, where, updateDoc, getDoc } from 'firebase/firestore';
 import { sendToGoogleSheet } from './googleSheets';
 
 interface LogData {

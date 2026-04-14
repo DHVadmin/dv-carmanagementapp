@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
             <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                        동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.5.3</span>
+                        동행빌리지 차량관리 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full align-middle">v5.6.3</span>
                     </h2>
                     <div className="mt-8 text-center text-gray-500 text-xs">
                         <p>© 2024 Donghaeng Village. All rights reserved.</p>
