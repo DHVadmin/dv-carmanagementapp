@@ -35,4 +35,6 @@ project_history/
 build.mjs
 build.txt
 build_output.txt
+build_*.txt
+commit_msg.txt
 dist2/

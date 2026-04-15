@@ -38,9 +38,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate, on
 
         const response = await fetch(gasUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ action: 'getSlackUsers', token })
         });
 

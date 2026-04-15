@@ -23,9 +23,6 @@ export const checkAndSendNotificationsUtil = async (settings: SystemSettings, is
 
         const response = await fetch(GAS_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
                 action: 'runNotificationCheck',
                 test: isManual
