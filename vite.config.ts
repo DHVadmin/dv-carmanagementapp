@@ -12,7 +12,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2015',
-    minify: false,
+    minify: 'esbuild',
     chunkSizeWarningLimit: 2000,
   }
 })

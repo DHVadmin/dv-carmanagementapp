@@ -29,5 +29,13 @@ try {
 
 } catch (error) {
   console.error("🔥 FATAL ERROR during React Mount:", error);
-  document.body.innerHTML = `<div style="color:red; padding:20px;"><h1>App Crash</h1><pre>${String(error)}</pre></div>`;
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'color:red; padding:20px;';
+  const title = document.createElement('h1');
+  title.textContent = 'App Crash';
+  const detail = document.createElement('pre');
+  detail.textContent = String(error);
+  wrapper.appendChild(title);
+  wrapper.appendChild(detail);
+  document.body.appendChild(wrapper);
 }
