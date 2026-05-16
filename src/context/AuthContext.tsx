@@ -34,7 +34,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     if (userSnap.exists()) {
                         const data = userSnap.data();
                         fetchedRole = data.role || 'user';
-                        if (fetchedRole === 'admin' || fetchedRole === 'approver') isSystemAdmin = true;
+                        if (['admin', 'subadmin', 'admin_담당'].includes(fetchedRole) || fetchedRole.startsWith('approver_')) {
+                            isSystemAdmin = true;
+                        }
 
                         // Update last login and fresh info
                         await setDoc(userRef, {

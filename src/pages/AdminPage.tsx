@@ -7,6 +7,7 @@ import { db, storage, auth } from '../firebase';
 import type { Vehicle, SystemSettings, Log, ModificationRequest } from '../types';
 import * as XLSX from 'xlsx';
 import { TripApprovalTab } from '../components/admin/TripApprovalTab';
+import { LogbookApprovalTab } from '../components/admin/LogbookApprovalTab';
 import { SettingsTab } from '../components/admin/SettingsTab';
 import { UserManagementTab } from '../components/admin/UserManagementTab';
 import { VehicleModal } from '../components/admin/VehicleModal';
@@ -24,7 +25,7 @@ import { compressImage } from '../utils/imageUtils';
 
 const AdminPage: React.FC = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'vehicles' | 'logs' | 'requests' | 'users' | 'settings' | 'trips'>('vehicles');
+    const [activeTab, setActiveTab] = useState<'vehicles' | 'logs' | 'requests' | 'users' | 'settings' | 'trips' | 'logbookApproval'>('vehicles');
     const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
     const [manualModal, setManualModal] = useState<'slack' | 'sheet' | 'businessTrip' | null>(null);
 
@@ -78,7 +79,7 @@ const AdminPage: React.FC = () => {
     // Actually, we should just use systemSettings in the UI.
 
     // User Role State
-    const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'user' | 'approver' | null>(null);
+    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
     useEffect(() => {
         const checkUserRole = async () => {
@@ -89,9 +90,9 @@ const AdminPage: React.FC = () => {
                     const userData = userDoc.data();
                     setCurrentUserRole(userData.role || 'user');
 
-                    // If approver, default to trips tab
-                    if (userData.role === 'approver') {
-                        setActiveTab('trips');
+                    // If approver, default to logbook approval tab
+                    if (userData.role?.startsWith('approver')) {
+                        setActiveTab('logbookApproval');
                     }
                 }
             }
@@ -108,7 +109,7 @@ const AdminPage: React.FC = () => {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tabParam = params.get('tab');
-        if (tabParam && ['vehicles', 'logs', 'requests', 'users', 'settings', 'trips'].includes(tabParam)) {
+        if (tabParam && ['vehicles', 'logs', 'requests', 'users', 'settings', 'trips', 'logbookApproval'].includes(tabParam)) {
             setActiveTab(tabParam as any);
         }
     }, []);
@@ -929,8 +930,9 @@ const AdminPage: React.FC = () => {
 
                 {/* Tabs */}
                 {/* Tabs */}
-                <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto">
-                    {['admin', 'approver'].includes(currentUserRole || '') && (
+                <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto border-b">
+                    {/* System Admin Tabs: 'admin', 'subadmin', 'admin_담당' */}
+                    {['admin', 'subadmin', 'admin_담당'].includes(currentUserRole || '') && (
                         <>
                             <button onClick={() => setActiveTab('vehicles')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'vehicles' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>차량 관리</button>
                             <button onClick={() => setActiveTab('logs')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'logs' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>로그 관리</button>
@@ -938,18 +940,16 @@ const AdminPage: React.FC = () => {
                                 수정/삭제 요청
                                 {requests.length > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{requests.length}</span>}
                             </button>
+                            <button onClick={() => setActiveTab('users')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'users' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>사용자 관리</button>
+                            <button onClick={() => setActiveTab('settings')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'settings' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>시스템 설정</button>
                         </>
                     )}
 
-                    {/* Trips is visible ONLY to Approver */}
-                    {currentUserRole === 'approver' && (
-                        <button onClick={() => setActiveTab('trips')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'trips' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>관내출장 결재</button>
-                    )}
-
-                    {['admin', 'approver'].includes(currentUserRole || '') && (
+                    {/* Approver Tabs: 'admin', 'admin_담당', 'approver_담당', 'approver_실장', 'approver_국장', 'approver_원장' */}
+                    {(['admin', 'admin_담당'].includes(currentUserRole || '') || currentUserRole?.startsWith('approver_')) && (
                         <>
-                            <button onClick={() => setActiveTab('users')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'users' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>사용자 관리</button>
-                            <button onClick={() => setActiveTab('settings')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'settings' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>시스템 설정</button>
+                            <button onClick={() => setActiveTab('logbookApproval')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'logbookApproval' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>일지 결재</button>
+                            <button onClick={() => setActiveTab('trips')} className={`px-4 py-3 font-bold text-sm whitespace-nowrap ${activeTab === 'trips' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>관내출장 결재</button>
                         </>
                     )}
                 </div>
@@ -1352,6 +1352,13 @@ const AdminPage: React.FC = () => {
                 {
                     activeTab === 'trips' && (
                         <TripApprovalTab settings={systemSettings} />
+                    )
+                }
+
+                {/* LOGBOOK APPROVAL TAB */}
+                {
+                    activeTab === 'logbookApproval' && currentUserRole && (
+                        <LogbookApprovalTab currentUserRole={currentUserRole} />
                     )
                 }
             </main>

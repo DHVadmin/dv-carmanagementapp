@@ -225,3 +225,23 @@ export interface ModificationRequest {
 }
 
 export type Log = (DrivingLog | FuelingLog | MaintenanceLog) & { type?: 'driving' | 'fueling' | 'maintenance'; typeKr?: string;[key: string]: any; };
+
+// v5.7 New: Logbook Approval System
+export interface LogbookApproval {
+    id?: string;
+    month: string; // YYYY-MM
+    status: 'pending' | '담당' | '실장' | '국장' | 'approved' | 'rejected';
+    currentStep: number; // 0, 1, 2, 3
+    vehicleIds: string[]; // List of vehicle IDs included in this batch
+    logsData: string; // JSON stringified minimal log data to preserve the snapshot
+    approvals: {
+        step: number;
+        role: string;
+        userId?: string;
+        userName?: string;
+        timestamp?: any;
+    }[];
+    rejectionReason?: string;
+    createdAt: any;
+    updatedAt: any;
+}

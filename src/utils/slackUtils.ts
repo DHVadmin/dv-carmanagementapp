@@ -51,8 +51,9 @@ export const getLogSummary = (log: any, collectionName?: string) => {
     };
     const type = collectionName ? (typeMap[collectionName] || collectionName) : (typeMap[log.type] || log.type);
 
-    const date = log.date || '날짜미상';
-    const vehicle = log.vehicleName ? `${log.vehicleName}(${log.vehicleNumber})` : (log.plateNumber ? `${log.vehicleName}(${log.plateNumber})` : '차량미상');
+    const date = log.date || log.startDate || '날짜미상';
+    const plate = log.vehiclePlate || log.plateNumber || log.vehicleNumber || '';
+    const vehicle = log.vehicleName ? `${log.vehicleName}(${plate})` : '차량미상';
 
     let details = '';
     if (type === '운행일지') details = `${log.purpose} / ${(log.distance || 0).toLocaleString()}km`;
@@ -65,11 +66,22 @@ export const getLogSummary = (log: any, collectionName?: string) => {
 /**
  * Sends a modification request notification using the configured template.
  */
-export const sendModificationNotification = async (settings: SystemSettings, request: any) => { // Use specific type if possible
+export const sendModificationNotification = async (settings: SystemSettings, request: any) => {
     const webhookUrl = settings.slackWebhook;
     const notiSettings = settings.integratedNotificationSettings;
 
-    if (!webhookUrl) return; // No webhook, nothing to do.
+    console.log('[SlackNotification] sendModificationNotification called', {
+        hasWebhook: !!webhookUrl,
+        integratedEnabled: notiSettings?.enabled,
+        hasTemplate: !!notiSettings?.messageTemplate,
+        changeType: request?.changeType,
+        requester: request?.requester,
+    });
+
+    if (!webhookUrl) {
+        console.warn('[SlackNotification] 슬랙 웹훅 URL이 없어 알림을 보내지 않습니다.');
+        return;
+    }
 
     // Check if integrated settings exist and are enabled. 
     // If not, fall back to default hardcoded message for backward compatibility or stop?
@@ -130,6 +142,15 @@ export const sendModificationNotification = async (settings: SystemSettings, req
             `📋 *대상 기록*\n${logSummary}`;
     }
 
+    // 템플릿 결과가 비어있으면 기본 메시지로 대체
+    if (!message.trim()) {
+        console.warn('[SlackNotification] 메시지가 비어있어 기본 형식으로 대체합니다.');
+        message = `📢 [${requestType} 요청] ${requesterName} 님이 ${requestType}을 요청했습니다.\n\n` +
+            `💬 *사유*: ${reason}\n` +
+            `📋 *대상 기록*\n${logSummary}`;
+    }
+
+    console.log('[SlackNotification] 최종 메시지 전송:', message.substring(0, 100));
     await sendSlackNotification(webhookUrl, message);
 };
 
