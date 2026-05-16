@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\" -Recurse -Force)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Find \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\src\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "WebSearch",
+      "Bash(find /c/Users/black/DeskTop/개발앱/차량앱\\\\\\(최종\\\\\\) -type f -name \".env*\" 2>/dev/null | head -20)",
+      "Bash(cp \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\vite.config.ts\" \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\vite.config.ts\")",
+      "Bash(cp \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\.gitignore\" \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.gitignore\")",
+      "Bash(cp \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\firebase.json\" \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\firebase.json\")",
+      "Bash(cp \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\src\\\\firebase.ts\" \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\src\\\\firebase.ts\")",
+      "Bash(cp \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\.claude\\\\worktrees\\\\jolly-wiles-aa0c37\\\\src\\\\main.tsx\" \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\\\\src\\\\main.tsx\")",
+      "Bash(npm run *)",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(ssh -o StrictHostKeyChecking=no -T git@github.com)",
+      "Bash(firebase deploy *)",
+      "PowerShell(cd \"C:\\\\Users\\\\black\\\\DeskTop\\\\개발앱\\\\차량앱\\(최종\\)\"; npm run build; echo \"Exit: $LASTEXITCODE\")",
+      "PowerShell(Start-Process explorer \"C:\\\\Users\\\\black\\\\DeskTop\\\\���߾�\\\\������\\(����\\)\")"
+    ]
+  }
+}
