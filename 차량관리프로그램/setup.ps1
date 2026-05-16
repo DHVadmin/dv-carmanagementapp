@@ -1,18 +1,18 @@
-# ============================================================
-# 동행빌리지 차량관리 앱 설치 도우미 v1.1
-# GitHub에서 최신 소스를 자동으로 받아 빌드/배포합니다.
+﻿# ============================================================
+# DV Car Management App - Setup v1.1
+# GitHub 에서 최신 소스를 자동으로 받아 빌드/배포합니다.
 # ============================================================
 
 $GITHUB_REPO = "DHVadmin/dv-carmanagementapp"
 $GITHUB_ZIP  = "https://github.com/$GITHUB_REPO/archive/refs/heads/main.zip"
 $INSTALL_DIR = "$env:TEMP\dv-carmanagement-install"
 
-$Host.UI.RawUI.WindowTitle = "동행빌리지 차량관리 - 설치 도우미"
+try { $Host.UI.RawUI.WindowTitle = "DV Car Management - Setup" } catch {}
 
 function Write-Header {
     Clear-Host
     Write-Host "============================================================" -ForegroundColor Cyan
-    Write-Host "   동행빌리지 차량관리 앱  -  설치 도우미 v1.1" -ForegroundColor Cyan
+    Write-Host "   DV Car Management App  -  Setup v1.1" -ForegroundColor Cyan
     Write-Host "============================================================" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -20,7 +20,7 @@ function Write-Header {
 function Write-Step {
     param([int]$Step, [int]$Total, [string]$Title)
     Write-Host ""
-    Write-Host "[ 단계 $Step / $Total ]  $Title" -ForegroundColor Yellow
+    Write-Host "[ $Step / $Total ]  $Title" -ForegroundColor Yellow
     Write-Host "------------------------------------------------------------" -ForegroundColor DarkGray
 }
 
@@ -49,7 +49,7 @@ function Read-Required {
 # STEP 0: 안내
 # ============================================================
 Write-Header
-Write-Host "  GitHub에서 최신 소스를 받아 Firebase에 자동 배포합니다." -ForegroundColor White
+Write-Host "  GitHub 에서 최신 소스를 받아 Firebase 에 자동 배포합니다." -ForegroundColor White
 Write-Host ""
 Write-Host "  소요 시간: 약 5~10분" -ForegroundColor White
 Write-Host ""
@@ -61,7 +61,7 @@ Write-Host "    4. Storage 활성화" -ForegroundColor White
 Write-Host "    5. Hosting 활성화" -ForegroundColor White
 Write-Host "    6. Blaze 요금제 전환" -ForegroundColor White
 Write-Host ""
-Write-Host "  준비가 됐으면 Enter를 누르세요." -ForegroundColor Green
+Write-Host "  준비가 됐으면 Enter 를 누르세요." -ForegroundColor Green
 Read-Host | Out-Null
 
 # ============================================================
@@ -73,7 +73,7 @@ Write-Step 1 6 "필수 도구 확인"
 # Node.js
 $nodeVer = node --version 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Fail "Node.js가 없습니다. https://nodejs.org 에서 LTS 버전을 설치하세요."
+    Write-Fail "Node.js 가 없습니다. https://nodejs.org 에서 LTS 버전을 설치하세요."
     Pause-And-Exit
 }
 Write-Success "Node.js $nodeVer"
@@ -90,12 +90,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ============================================================
-# STEP 2: GitHub에서 소스 다운로드
+# STEP 2: GitHub 에서 소스 다운로드
 # ============================================================
 Write-Header
 Write-Step 2 6 "최신 소스 다운로드 (GitHub)"
 
-# 기존 임시 폴더 정리
 if (Test-Path $INSTALL_DIR) {
     Remove-Item -Recurse -Force $INSTALL_DIR
 }
@@ -114,7 +113,6 @@ Write-Success "다운로드 완료"
 Write-Info "압축 해제 중..."
 Expand-Archive -Path "$INSTALL_DIR\source.zip" -DestinationPath "$INSTALL_DIR" -Force
 
-# 압축 해제된 폴더 찾기 (dv-carmanagementapp-main 형태)
 $sourceFolder = Get-ChildItem -Path $INSTALL_DIR -Directory | Where-Object { $_.Name -like "*carmanagement*" } | Select-Object -First 1
 if (-not $sourceFolder) {
     Write-Fail "소스 폴더를 찾을 수 없습니다."
@@ -145,17 +143,17 @@ Write-Host ""
 Write-Info "관리자 이메일을 입력하세요 (이 계정으로 처음 로그인하면 관리자 권한 부여)"
 $ADMIN_EMAIL = Read-Required "관리자 이메일 (예: admin@your-org.kr)"
 
-# .env.local 생성
-$envContent = @"
-VITE_FIREBASE_API_KEY=$FIREBASE_API_KEY
-VITE_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN
-VITE_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
-VITE_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET
-VITE_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_ID
-VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
-VITE_FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID
-"@
-Set-Content -Path ".env.local" -Value $envContent -Encoding UTF8
+# .env.local 생성 (heredoc 대신 문자열 연결 사용)
+$envLines = @(
+    "VITE_FIREBASE_API_KEY=$FIREBASE_API_KEY",
+    "VITE_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN",
+    "VITE_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID",
+    "VITE_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET",
+    "VITE_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_ID",
+    "VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID",
+    "VITE_FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID"
+)
+$envLines | Set-Content -Path ".env.local" -Encoding UTF8
 Write-Success ".env.local 생성 완료"
 
 $global:ProjectId  = $FIREBASE_PROJECT_ID
