@@ -147,6 +147,7 @@ export interface IntegratedNotificationSettings {
     enabled: boolean;
     messageTemplate: string;
     tripMessageTemplate?: string; // 관내출장용 템플릿
+    modificationMessageTemplate?: string; // 수정/삭제 요청용 템플릿
 }
 
 export interface DrivingLog {

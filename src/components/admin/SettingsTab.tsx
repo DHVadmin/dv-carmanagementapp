@@ -910,7 +910,8 @@ const IntegratedNotificationConfigForm = ({ settings, slackBotToken, onSave, onS
     const defaultSettings: IntegratedNotificationSettings = {
         enabled: false,
         messageTemplate: '',
-        tripMessageTemplate: ''
+        tripMessageTemplate: '',
+        modificationMessageTemplate: ''
     };
 
     const [editing, setEditing] = useState(false);
@@ -1025,25 +1026,28 @@ const IntegratedNotificationConfigForm = ({ settings, slackBotToken, onSave, onS
                     {/* Modification Request Template */}
                     <div className="space-y-2">
                         <label className="block text-xs font-bold text-gray-500">1. 기록 수정/삭제 요청 알림 템플릿</label>
+                        <p className="text-[10px] text-purple-600 bg-purple-50 p-2 rounded">
+                            💡 비워두면 기본 메시지({'{요청자}'} 님이 {'{요청종류}'}을 요청했습니다...)로 발송됩니다.
+                        </p>
                         <div className="text-[10px] text-gray-500 flex flex-wrap gap-1">
                             <span>변수:</span>
-                            {['{요청자}', '{멘션}', '{요청종류}', '{사유}', '{대상기록}', '{차량명}', '{차량번호}', '{날짜}', '{목적}', '{목적지}', '{항목}', '{상태}', '{잔여}', '{만료일}'].map(tag => (
+                            {['{요청자}', '{멘션}', '{요청종류}', '{사유}', '{대상기록}', '{차량명}', '{차량번호}', '{날짜}'].map(tag => (
                                 <span key={tag} className="px-1 bg-gray-200 rounded cursor-pointer hover:bg-gray-300"
-                                    onClick={() => setLocal({ ...local, messageTemplate: (local.messageTemplate || '') + tag })}>
+                                    onClick={() => setLocal({ ...local, modificationMessageTemplate: (local.modificationMessageTemplate || '') + tag })}>
                                     {tag}
                                 </span>
                             ))}
                         </div>
                         <textarea
-                            value={local.messageTemplate}
-                            onChange={e => setLocal({ ...local, messageTemplate: e.target.value })}
-                            placeholder="수정 요청 알림 템플릿..."
+                            value={local.modificationMessageTemplate || ''}
+                            onChange={e => setLocal({ ...local, modificationMessageTemplate: e.target.value })}
+                            placeholder="비워두면 기본 형식으로 발송됩니다.&#10;예: 📢 [{요청종류}] {멘션} 님이 요청했습니다.&#10;사유: {사유}&#10;대상: {대상기록}"
                             className="w-full p-2 border rounded text-sm h-24 font-mono"
                         />
                         <div className="bg-white p-3 rounded border border-gray-200 text-sm">
                             <div className="font-bold text-xs text-gray-400 mb-1">미리보기 (수정 요청)</div>
                             <div className="text-gray-800 whitespace-pre-wrap">
-                                {getPreview(local.messageTemplate)}
+                                {getPreview(local.modificationMessageTemplate || '')}
                             </div>
                         </div>
                     </div>

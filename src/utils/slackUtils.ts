@@ -96,9 +96,9 @@ export const sendModificationNotification = async (settings: SystemSettings, req
 
     let message = '';
 
-    if (notiSettings && notiSettings.enabled && notiSettings.messageTemplate) {
-        // Template Mode
-        let template = notiSettings.messageTemplate;
+    if (notiSettings && notiSettings.enabled && notiSettings.modificationMessageTemplate) {
+        // Modification-specific Template Mode
+        let template = notiSettings.modificationMessageTemplate;
 
         // 1. Resolve Mention
         let mention = requesterName;
